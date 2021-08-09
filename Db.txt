@@ -1,0 +1,81 @@
+CREATE TABLE [dbo].[M_Customer](
+	[Id] [int] IDENTITY(1,1) NOT NULL,
+	[Name] [varchar](100) NULL,
+	[Mobile] [varchar](50) NULL,
+	[ImageUpload] [varchar](50) NULL,
+	[Designation] [varchar](100) NULL,
+	[Country] [varchar](100) NULL,
+	[Gender] [varchar](50) NULL,
+	[UserName] [varchar](100) NULL,
+	[Password] [varchar](50) NULL,
+	[bit_deletedFlag] [bit] NULL,
+ CONSTRAINT [PK_M_Customer] PRIMARY KEY CLUSTERED 
+(
+	[Id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+
+ALTER TABLE [dbo].[M_Customer] ADD  CONSTRAINT [DF_M_Customer_bit_deletedFlag]  DEFAULT ((0)) FOR [bit_deletedFlag]
+GO
+
+------------------------------------------------
+
+
+/****** Object:  StoredProcedure [dbo].[usp_emp_aed]    Script Date: 8/7/2021 5:48:18 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+alter proc [dbo].[usp_Customer_aed]
+@P_Action varchar(2)=null,
+@P_UserName varchar(50)=null,
+@P_Password varchar(50)=null,
+@P_Country varchar(50)=null,
+@P_Name varchar(100)=null,
+@P_Address varchar(100)=null,
+@P_Mobile varchar(50)=null,
+@P_Email varchar(50)=null,
+@P_Gender varchar(50)=null,
+
+
+@P_msg varchar(50)=null output
+as
+begin
+
+	if(@P_Action='A')
+	begin
+		insert into M_Customer( Name,[password]) values(@P_UserName,@P_Password)
+		set @P_msg ='1'
+	end
+
+	if(@P_Action='I')
+	begin
+		insert into M_Customer(Name, [Designation], Mobile, username, Gender, [Password],Country) 
+			   values    (@P_Name,@P_Address,@P_Mobile,@P_Email, @P_Gender,@P_Password,@P_Country)
+		set @P_msg ='1'
+	end
+
+	if(@P_Action='L')--Login
+	begin
+		declare @count int=0
+		select @count=(select count(*) from M_Customer where username=@P_Email and [Password]=@P_Password and bit_deletedFlag=0)
+		begin
+		if  (@count>0)
+		begin
+		set @P_msg ='1'
+		end
+		else
+		begin
+		set @P_msg ='2'
+		end
+		End
+	end
+
+	IF(@P_Action='S')------BIND TRANSPORTER
+		BEGIN			
+			SELECT Name as Name , [Designation], Mobile, username, Gender, [Password],Country,ImageUpload FROM M_Customer
+		END
+
+
+end
